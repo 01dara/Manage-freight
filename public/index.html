@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>គ្រប់គ្រងទំនិញហោះហើរ - Flight Cargo Management</title>
+  <!-- Google Fonts for Kantumruy Pro and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-area">
+          <svg class="icon-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 16V18C21 19.1 20.1 20 19 20H5C3.9 20 3 19.1 3 18V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 3V15M12 15L8 11M12 15L16 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 10V8C3 6.9 3.9 6 5 6H7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 10V8C21 6.9 20.1 6 19 6H16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <h1 id="app-title-text" data-i18n="appTitle">គ្រប់គ្រងទំនិញហោះហើរ</h1>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <!-- Online/Offline Badge -->
+        <div id="connection-status" class="status-badge offline">
+          ⚠️ ផ្ទៀងផ្ទាត់ការតភ្ជាប់...
+        </div>
+        
+        <!-- Controls -->
+        <div class="header-controls">
+          <!-- Language Switcher -->
+          <div class="lang-switch-container">
+            <button id="btn-lang-kh" class="lang-btn active" onclick="changeLanguage('KH')">KH</button>
+            <button id="btn-lang-kr" class="lang-btn" onclick="changeLanguage('KR')">KR</button>
+          </div>
+          
+          <!-- Dark Mode Toggle -->
+          <button id="btn-theme-toggle" class="icon-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
+            <!-- Sun Icon -->
+            <svg id="icon-sun" class="theme-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 1V3M12 21V23M4.22 4.22L5.64 5.64M18.36 18.36L19.78 19.78M1 12H3M21 12H23M4.22 19.78L5.64 18.36M18.36 5.64L19.78 4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <!-- Moon Icon -->
+            <svg id="icon-moon" class="theme-icon hidden" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="app-nav">
+      <button id="nav-dashboard" class="nav-item active" onclick="switchTab('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        <span data-i18n="tabDashboard">ផ្ទាំងគ្រប់គ្រង</span>
+      </button>
+      <button id="nav-data-entry" class="nav-item" onclick="switchTab('data-entry')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        <span data-i18n="tabDataEntry">បញ្ចូលទិន្នន័យ</span>
+      </button>
+      <button id="nav-settings" class="nav-item" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span data-i18n="tabSettings">កំណត់</span>
+      </button>
+      <button id="nav-about" class="nav-item" onclick="switchTab('about')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="tabAbout">អំពី</span>
+      </button>
+    </nav>
+
+    <!-- App Views Content Area -->
+    <main class="app-content">
+      <!-- 1. DASHBOARD VIEW -->
+      <section id="view-dashboard" class="tab-view active">
+        <div class="dashboard-grid">
+          <!-- Column 1: Not Arrived -->
+          <div class="dashboard-col" id="col-not-arrived">
+            <div class="col-header">
+              <div class="col-title-badge color-orange"></div>
+              <h2 data-i18n="colNotArrived">ទំនិញមិនទាន់ដល់ទីតាំង</h2>
+              <span class="count-badge" id="count-not-arrived">0</span>
+            </div>
+            <div class="cargo-list" id="list-not-arrived">
+              <!-- Cards dynamically inserted here -->
+            </div>
+          </div>
+
+          <!-- Column 2: Arrived -->
+          <div class="dashboard-col" id="col-arrived">
+            <div class="col-header">
+              <div class="col-title-badge color-blue"></div>
+              <h2 data-i18n="colArrived">ទំនិញដល់ទីតាំង</h2>
+              <span class="count-badge" id="count-arrived">0</span>
+            </div>
+            <div class="cargo-list" id="list-arrived">
+              <!-- Cards dynamically inserted here -->
+            </div>
+          </div>
+
+          <!-- Column 3: Checked -->
+          <div class="dashboard-col" id="col-checked">
+            <div class="col-header justify-between">
+              <div class="col-header-left">
+                <div class="col-title-badge color-green"></div>
+                <h2 data-i18n="colChecked">ពិនិត្យរួច</h2>
+                <span class="count-badge" id="count-checked">0</span>
+              </div>
+              <button id="btn-delete-all" class="btn btn-danger btn-sm hidden" onclick="confirmDeleteAllCargo()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span data-i18n="deleteAll">លុបទាំងអស់</span>
+              </button>
+            </div>
+            <div class="cargo-list" id="list-checked">
+              <!-- Cards dynamically inserted here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. DATA ENTRY VIEW -->
+      <section id="view-data-entry" class="tab-view">
+        <div class="form-container glass-panel">
+          <h2 class="form-title" data-i18n="insertTitle">បញ្ចូលទិន្នន័យទំនិញថ្មី</h2>
+          
+          <form id="cargo-form" onsubmit="handleCargoSubmit(event)">
+            <!-- Images upload area -->
+            <div class="form-group">
+              <label class="form-label" data-i18n="cargoImage">រូបភាពទំនិញ</label>
+              
+              <!-- Images Preview Grid -->
+              <div class="image-upload-preview-grid" id="entry-preview-grid">
+                <!-- Preview items will go here -->
+              </div>
+              
+              <div class="upload-btn-row">
+                <label class="upload-file-label btn btn-secondary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span data-i18n="uploadImage">Upload រូបភាព</span>
+                  <input type="file" id="cargo-image-files" accept="image/*" multiple onchange="handleImageUpload(event, 'entry')">
+                </label>
+                
+                <button type="button" class="btn btn-secondary" onclick="openCameraInput('entry')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  <span data-i18n="camera">កាមេរ៉ា</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Cargo Name -->
+            <div class="form-group">
+              <label class="form-label" for="cargo-name" data-i18n="cargoName">ឈ្មោះទំនិញ</label>
+              <textarea id="cargo-name" class="form-input text-area" rows="3" required></textarea>
+            </div>
+
+            <!-- Website -->
+            <div class="form-group">
+              <label class="form-label" for="cargo-web" data-i18n="website">វេបសាយ</label>
+              <input type="url" id="cargo-web" class="form-input" placeholder="https://...">
+            </div>
+
+            <div class="form-row-2">
+              <!-- Departure Date -->
+              <div class="form-group">
+                <label class="form-label" for="cargo-dep-date" data-i18n="departureDate">កាលបរិច្ឆេទដាក់ចេញ</label>
+                <input type="date" id="cargo-dep-date" class="form-input">
+              </div>
+
+              <!-- Arrival Date -->
+              <div class="form-group">
+                <label class="form-label" for="cargo-arr-date" data-i18n="arrivalDate">កាលបរិច្ឆេទដល់ទីតាំង</label>
+                <input type="date" id="cargo-arr-date" class="form-input">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <!-- Case Code -->
+              <div class="form-group">
+                <label class="form-label" for="cargo-case-code" data-i18n="caseCode">លេខកូដកេះ</label>
+                <input type="text" id="cargo-case-code" class="form-input" required>
+              </div>
+
+              <!-- Tracking Code -->
+              <div class="form-group">
+                <label class="form-label" for="cargo-track-code" data-i18n="trackingCode">លេខកូដសម្រាប់ឆែក</label>
+                <input type="text" id="cargo-track-code" class="form-input" required>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <!-- Sender Name -->
+              <div class="form-group">
+                <label class="form-label" for="cargo-sender" data-i18n="senderName">ឈ្មោះអ្នកដាក់ចេញ</label>
+                <select id="cargo-sender" class="form-input">
+                  <!-- Options loaded from settings -->
+                </select>
+              </div>
+
+              <!-- Receiver Name -->
+              <div class="form-group">
+                <label class="form-label" for="cargo-receiver" data-i18n="receiverName">ឈ្មោះអ្នកទទួល</label>
+                <select id="cargo-receiver" class="form-input">
+                  <!-- Options loaded from settings -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Status selector -->
+            <div class="form-group">
+              <label class="form-label" data-i18n="status">ស្ថានភាព</label>
+              <div class="status-btn-group">
+                <button type="button" id="status-btn-unchecked" class="status-sel-btn active" onclick="setFormStatus('unchecked')">
+                  <span data-i18n="statusUnchecked">មិនទាន់ពិនិត្យ</span>
+                </button>
+                <button type="button" id="status-btn-complete" class="status-sel-btn" onclick="setFormStatus('complete')">
+                  <span data-i18n="statusComplete">គ្រប់ចំនួន</span>
+                </button>
+                <button type="button" id="status-btn-missing" class="status-sel-btn" onclick="setFormStatus('missing')">
+                  <span data-i18n="statusMissing">ខ្វះទិន្នន័យ</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="form-actions-row">
+              <button type="submit" class="btn btn-primary w-full py-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+                <span data-i18n="btnInsert">បញ្ចូលទិន្នន័យ</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 3. SETTINGS VIEW -->
+      <section id="view-settings" class="tab-view">
+        <div class="form-container glass-panel">
+          <h2 class="form-title" data-i18n="settingsTitle">ការកំណត់ប្រព័ន្ធ</h2>
+          
+          <!-- Manager Name Setting -->
+          <div class="form-group">
+            <label class="form-label" for="setting-manager-name" data-i18n="managerNameLabel">ឈ្មោះអ្នកគ្រប់គ្រង</label>
+            <input type="text" id="setting-manager-name" class="form-input" onchange="saveSystemSettings()">
+          </div>
+
+          <!-- Sender / Receiver Lists Settings -->
+          <div class="settings-list-grid">
+            <!-- Senders list management -->
+            <div class="setting-list-card">
+              <h3 class="setting-sub-title" data-i18n="addSenderLabel">បន្ថែមឈ្មោះអ្នកដាក់ចេញថ្មី</h3>
+              <div class="setting-add-input-row">
+                <input type="text" id="new-sender-input" class="form-input" data-i18n-placeholder="placeholderSender" placeholder="បញ្ចូលឈ្មោះអ្នកដាក់ចេញ...">
+                <button type="button" class="btn btn-primary" onclick="addNewSender()">
+                  <span data-i18n="btnAdd">បន្ថែម</span>
+                </button>
+              </div>
+              <ul class="settings-item-list" id="settings-senders-list">
+                <!-- Dynamically populated list -->
+              </ul>
+            </div>
+
+            <!-- Receivers list management -->
+            <div class="setting-list-card">
+              <h3 class="setting-sub-title" data-i18n="addReceiverLabel">បន្ថែមឈ្មោះអ្នកទទួលថ្មី</h3>
+              <div class="setting-add-input-row">
+                <input type="text" id="new-receiver-input" class="form-input" data-i18n-placeholder="placeholderReceiver" placeholder="បញ្ចូលឈ្មោះអ្នកទទួល...">
+                <button type="button" class="btn btn-primary" onclick="addNewReceiver()">
+                  <span data-i18n="btnAdd">បន្ថែម</span>
+                </button>
+              </div>
+              <ul class="settings-item-list" id="settings-receivers-list">
+                <!-- Dynamically populated list -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ABOUT VIEW -->
+      <section id="view-about" class="tab-view">
+        <div class="form-container glass-panel about-panel">
+          <h2 class="form-title" data-i18n="aboutTitle">អំពីកម្មវិធី</h2>
+          
+          <div class="about-card-top">
+            <div class="about-avatar">H</div>
+            <div class="about-top-right">
+              <h3 data-i18n="developer">បង្កើតកម្មវិធីដោយ Hout Dara</h3>
+              <p class="about-purpose" data-i18n="purpose">កម្មវិធីនេះបង្កើតឡើងដើម្បីងាយស្រួលក្នុងការតាមដានទំនិញ និង ពិនិត្យទំនិញ។</p>
+            </div>
+          </div>
+
+          <!-- Statistics Info -->
+          <div class="about-stats-grid">
+            <div class="about-stat-box">
+              <div class="stat-icon bg-orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-num" id="stat-dep-count">0</div>
+                <div class="stat-label" data-i18n="statDeparture">ចំនួនកេះដាក់ចេញ</div>
+              </div>
+            </div>
+
+            <div class="about-stat-box">
+              <div class="stat-icon bg-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div class="stat-content">
+                <div class="stat-num" id="stat-arr-count">0</div>
+                <div class="stat-label" data-i18n="statArrival">ចំនួនកេះដល់ទីតាំង</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detailed points with icons -->
+          <div class="about-points-list">
+            <div class="about-point-item">
+              <div class="point-icon text-cyan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <div class="point-text" data-i18n="responsiveDesc">អាចប្រើប្រាស់បានទាំង PC និង Mobile។</div>
+            </div>
+            
+            <div class="about-point-item">
+              <div class="point-icon text-emerald">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="point-text" data-i18n="syncDesc">ដំណើការ Sync ដោយស្វ័យប្រវត្តិរាល់ពេលបញ្ចូលទិន្នន័យ និង Realtime គ្រប់ឧបករណ៍។</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+  
+  <!-- 1. FULL CARD DETAILS MODAL -->
+  <div id="modal-details" class="modal-backdrop hidden">
+    <div class="modal-content glass-panel max-w-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="details-modal-title">ព័ត៌មានលម្អិតទំនិញ</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-details')">&times;</button>
+      </div>
+      <div class="modal-body" id="details-modal-body">
+        <!-- Details dynamically loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. EDIT CARGO FORM MODAL -->
+  <div id="modal-edit" class="modal-backdrop hidden">
+    <div class="modal-content glass-panel max-w-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" data-i18n="edit">កែសម្រួលព័ត៌មាន</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-edit')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-cargo-form" onsubmit="handleCargoEditSubmit(event)">
+          <input type="hidden" id="edit-cargo-id">
+          
+          <!-- Images upload area -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="cargoImage">រូបភាពទំនិញ</label>
+            
+            <!-- Images Preview Grid -->
+            <div class="image-upload-preview-grid" id="edit-preview-grid">
+              <!-- Edit Preview items will go here -->
+            </div>
+            
+            <div class="upload-btn-row">
+              <label class="upload-file-label btn btn-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span data-i18n="uploadImage">Upload រូបភាព</span>
+                <input type="file" id="edit-cargo-image-files" accept="image/*" multiple onchange="handleImageUpload(event, 'edit')">
+              </label>
+              
+              <button type="button" class="btn btn-secondary" onclick="openCameraInput('edit')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span data-i18n="camera">កាមេរ៉ា</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cargo Name -->
+          <div class="form-group">
+            <label class="form-label" for="edit-cargo-name" data-i18n="cargoName">ឈ្មោះទំនិញ</label>
+            <textarea id="edit-cargo-name" class="form-input text-area" rows="3" required></textarea>
+          </div>
+
+          <!-- Website -->
+          <div class="form-group">
+            <label class="form-label" for="edit-cargo-web" data-i18n="website">វេបសាយ</label>
+            <input type="url" id="edit-cargo-web" class="form-input" placeholder="https://...">
+          </div>
+
+          <div class="form-row-2">
+            <!-- Departure Date -->
+            <div class="form-group">
+              <label class="form-label" for="edit-cargo-dep-date" data-i18n="departureDate">កាលបរិច្ឆេទដាក់ចេញ</label>
+              <input type="date" id="edit-cargo-dep-date" class="form-input">
+            </div>
+
+            <!-- Arrival Date -->
+            <div class="form-group">
+              <label class="form-label" for="edit-cargo-arr-date" data-i18n="arrivalDate">កាលបរិច្ឆេទដល់ទីតាំង</label>
+              <input type="date" id="edit-cargo-arr-date" class="form-input">
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <!-- Case Code -->
+            <div class="form-group">
+              <label class="form-label" for="edit-cargo-case-code" data-i18n="caseCode">លេខកូដកេះ</label>
+              <input type="text" id="edit-cargo-case-code" class="form-input" required>
+            </div>
+
+            <!-- Tracking Code -->
+            <div class="form-group">
+              <label class="form-label" for="edit-cargo-track-code" data-i18n="trackingCode">លេខកូដសម្រាប់ឆែក</label>
+              <input type="text" id="edit-cargo-track-code" class="form-input" required>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <!-- Sender Name -->
+            <div class="form-group">
+              <label class="form-label" for="edit-cargo-sender" data-i18n="senderName">ឈ្មោះអ្នកដាក់ចេញ</label>
+              <select id="edit-cargo-sender" class="form-input">
+                <!-- Options loaded from settings -->
+              </select>
+            </div>
+
+            <!-- Receiver Name -->
+            <div class="form-group">
+              <label class="form-label" for="edit-cargo-receiver" data-i18n="receiverName">ឈ្មោះអ្នកទទួល</label>
+              <select id="edit-cargo-receiver" class="form-input">
+                <!-- Options loaded from settings -->
+              </select>
+            </div>
+          </div>
+
+          <!-- Status selector -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="status">ស្ថានភាព</label>
+            <div class="status-btn-group">
+              <button type="button" id="edit-status-btn-unchecked" class="status-sel-btn" onclick="setEditFormStatus('unchecked')">
+                <span data-i18n="statusUnchecked">មិនទាន់ពិនិត្យ</span>
+              </button>
+              <button type="button" id="edit-status-btn-complete" class="status-sel-btn" onclick="setEditFormStatus('complete')">
+                <span data-i18n="statusComplete">គ្រប់ចំនួន</span>
+              </button>
+              <button type="button" id="edit-status-btn-missing" class="status-sel-btn" onclick="setEditFormStatus('missing')">
+                <span data-i18n="statusMissing">ខ្វះទិន្នន័យ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="form-actions-row gap-2">
+            <button type="button" class="btn btn-secondary w-full py-3" onclick="closeModal('modal-edit')">
+              <span data-i18n="cancel">បោះបង់</span>
+            </button>
+            <button type="submit" class="btn btn-primary w-full py-3">
+              <span data-i18n="save">រក្សាទុក</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. ZOOMABLE IMAGE OVERLAY -->
+  <div id="overlay-zoom" class="zoom-overlay hidden" onclick="closeZoomOverlay()">
+    <button class="zoom-overlay-close">&times;</button>
+    <div class="zoom-controls" onclick="event.stopPropagation()">
+      <button onclick="adjustZoom(0.2)" title="Zoom In">+</button>
+      <button onclick="resetZoom()" title="Reset Zoom">100%</button>
+      <button onclick="adjustZoom(-0.2)" title="Zoom Out">-</button>
+    </div>
+    <div class="zoom-container" onclick="event.stopPropagation()">
+      <img id="zoomed-image" src="" alt="Zoomed View" style="transform: scale(1);" onmousedown="startDrag(event)" ontouchstart="startTouchDrag(event)">
+    </div>
+  </div>
+
+  <!-- 4. PASSWORD PROMPT MODAL FOR DELETE ALL -->
+  <div id="modal-password" class="modal-backdrop hidden">
+    <div class="modal-content glass-panel max-w-sm">
+      <div class="modal-header">
+        <h3 class="modal-title" data-i18n="deleteAll">លុបទាំងអស់</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-password')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-4" data-i18n="promptPassword">សូមបញ្ចូលលេខសំងាត់ ដើម្បីលុបទាំងអស់៖</p>
+        <input type="password" id="input-delete-all-password" class="form-input mb-4" placeholder="••••••••">
+        <div class="flex gap-2">
+          <button class="btn btn-secondary w-full" onclick="closeModal('modal-password')">
+            <span data-i18n="cancel">បោះបង់</span>
+          </button>
+          <button class="btn btn-danger w-full" onclick="verifyPasswordAndDeleteAll()">
+            <span data-i18n="deleteAll">លុបទាំងអស់</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hidden inputs for triggering mobile native camera directly -->
+  <input type="file" id="camera-capture-input-entry" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event, 'entry')">
+  <input type="file" id="camera-capture-input-edit" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event, 'edit')">
+
+  <!-- Include App Javascript modules -->
+  <script src="js/translations.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
