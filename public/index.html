@@ -79,8 +79,25 @@
 
     <!-- App Views Content Area -->
     <main class="app-content">
-      <!-- 1. DASHBOARD VIEW -->
-      <section id="view-dashboard" class="tab-view active">
+        <!-- Segmented Column Switcher for Mobile/Tablet -->
+        <div class="dashboard-col-switcher">
+          <button id="switch-col-not-arrived" class="switch-btn active" onclick="switchDashboardColumn('not_arrived')">
+            <span class="col-title-badge color-orange"></span>
+            <span data-i18n="colNotArrived">ទំនិញមិនទាន់ដល់ទីតាំង</span>
+            <span class="count-badge" id="switch-count-not-arrived">0</span>
+          </button>
+          <button id="switch-col-arrived" class="switch-btn" onclick="switchDashboardColumn('arrived')">
+            <span class="col-title-badge color-blue"></span>
+            <span data-i18n="colArrived">ទំនិញដល់ទីតាំង</span>
+            <span class="count-badge" id="switch-count-arrived">0</span>
+          </button>
+          <button id="switch-col-checked" class="switch-btn" onclick="switchDashboardColumn('checked')">
+            <span class="col-title-badge color-green"></span>
+            <span data-i18n="colChecked">ពិនិត្យរួច</span>
+            <span class="count-badge" id="switch-count-checked">0</span>
+          </button>
+        </div>
+
         <div class="dashboard-grid">
           <!-- Column 1: Not Arrived -->
           <div class="dashboard-col" id="col-not-arrived">
@@ -516,6 +533,8 @@
   <!-- Hidden inputs for triggering mobile native camera directly -->
   <input type="file" id="camera-capture-input-entry" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event, 'entry')">
   <input type="file" id="camera-capture-input-edit" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event, 'edit')">
+  <input type="file" id="camera-capture-input-card" accept="image/*" multiple class="hidden" onchange="handleCardImageUpload(event)">
+  <input type="file" id="camera-capture-input-card-cam" accept="image/*" capture="environment" class="hidden" onchange="handleCardImageUpload(event)">
 
   <!-- Include App Javascript modules -->
   <script src="js/translations.js"></script>
