@@ -15,6 +15,8 @@ let currentFormStatus = "unchecked";
 let currentEditFormStatus = "unchecked";
 let uploadedImages = [];
 let editUploadedImages = [];
+let currentDashboardColumn = "not_arrived";
+let activeUploadCargoId = "";
 
 // Image Zoom and Pan State
 let zoomScale = 1.0;
@@ -737,6 +739,20 @@ function renderCargoLists() {
         <span class="status-pill ${statusClass}">${statusText}</span>
         ${cardImagesHTML}
         
+        <!-- Direct Upload Button Area inside Card -->
+        ${cargo.stage !== "checked" ? `
+        <div class="card-inline-upload-container" onclick="event.stopPropagation()">
+          <button class="card-inline-upload-btn" onclick="triggerCardImageUpload('${cargo.id}', 'file')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>${translations[lang].uploadImage}</span>
+          </button>
+          <button class="card-inline-upload-btn" onclick="triggerCardImageUpload('${cargo.id}', 'camera')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>${translations[lang].camera}</span>
+          </button>
+        </div>
+        ` : ''}
+
         <div class="card-body">
           <h3 class="card-title">${cargo.name}</h3>
           
@@ -754,6 +770,15 @@ function renderCargoLists() {
               <span>${translations[lang].date}</span>: <strong>${dateStr}</strong>
             </div>
           </div>
+
+          <!-- Direct Status Buttons inside Card -->
+          ${cargo.stage !== "checked" ? `
+          <div class="card-status-selector" onclick="event.stopPropagation()">
+            <button class="card-status-btn ${cargo.status === 'unchecked' ? 'active-unchecked' : ''}" onclick="changeCargoStatusDirect('${cargo.id}', 'unchecked')">${translations[lang].statusUnchecked}</button>
+            <button class="card-status-btn ${cargo.status === 'complete' ? 'active-complete' : ''}" onclick="changeCargoStatusDirect('${cargo.id}', 'complete')">${translations[lang].statusComplete}</button>
+            <button class="card-status-btn ${cargo.status === 'missing' ? 'active-missing' : ''}" onclick="changeCargoStatusDirect('${cargo.id}', 'missing')">${translations[lang].statusMissing}</button>
+          </div>
+          ` : ''}
 
           ${cargo.stage === "arrived" ? `
             <div class="manager-validation-panel" style="margin-top: 8px;">
@@ -798,10 +823,20 @@ function renderCargoLists() {
   arrivedList.innerHTML = arrivedHTML;
   checkedList.innerHTML = checkedHTML;
 
-  // Update count indicators
+  // Update counts on desktop columns header
   document.getElementById("count-not-arrived").textContent = notArrivedCount;
   document.getElementById("count-arrived").textContent = arrivedCount;
   document.getElementById("count-checked").textContent = checkedCount;
+
+  // Update counts on mobile segmented button switcher
+  document.getElementById("switch-count-not-arrived").textContent = notArrivedCount;
+  document.getElementById("switch-count-arrived").textContent = arrivedCount;
+  document.getElementById("switch-count-checked").textContent = checkedCount;
+
+  // Update column visibility class for mobile/tablet responsive layout
+  document.getElementById("col-not-arrived").classList.toggle("active-col", currentDashboardColumn === "not_arrived");
+  document.getElementById("col-arrived").classList.toggle("active-col", currentDashboardColumn === "arrived");
+  document.getElementById("col-checked").classList.toggle("active-col", currentDashboardColumn === "checked");
 
   // Toggle "Delete All" button inside Column 3 Checked
   const btnDeleteAll = document.getElementById("btn-delete-all");
@@ -834,6 +869,98 @@ function renderAboutStats() {
   if (depEl) depEl.textContent = depCount;
   if (arrEl) arrEl.textContent = arrCount;
 }
+
+// ================= DIRECT CARD INTERACTIONS & OPTIMISTIC SYNC LOGIC =================
+
+function switchDashboardColumn(colName) {
+  currentDashboardColumn = colName;
+  
+  // Highlight active segmented button switcher
+  document.getElementById("switch-col-not-arrived").classList.toggle("active", colName === "not_arrived");
+  document.getElementById("switch-col-arrived").classList.toggle("active", colName === "arrived");
+  document.getElementById("switch-col-checked").classList.toggle("active", colName === "checked");
+  
+  // Rerender lists to toggle column visibility classes
+  renderCargoLists();
+}
+
+async function changeCargoStatusDirect(id, newStatus) {
+  const cargoIdx = cargoList.findIndex(c => c.id === id);
+  if (cargoIdx === -1) return;
+  
+  const originalCargo = cargoList[cargoIdx];
+  let stage = originalCargo.stage;
+  
+  // Move cargo across columns automatically based on status changes
+  if (originalCargo.stage === "not_arrived" && (newStatus === "complete" || newStatus === "missing")) {
+    stage = "arrived";
+  } else if (originalCargo.stage === "arrived" && newStatus === "unchecked") {
+    stage = "not_arrived";
+  }
+  
+  cargoList[cargoIdx] = {
+    ...originalCargo,
+    status: newStatus,
+    stage: stage,
+    dateTime: new Date().toISOString()
+  };
+  
+  // Optimistic UI Redraw: instant updates for user
+  renderCargoLists();
+  renderAboutStats();
+  
+  // Save in background to IndexedDB & Server
+  await api.saveLocalCargoList(cargoList);
+  await api.sendCargoToServer(cargoList);
+}
+
+function triggerCardImageUpload(id, source) {
+  activeUploadCargoId = id;
+  if (source === "camera") {
+    document.getElementById("camera-capture-input-card-cam").click();
+  } else {
+    document.getElementById("camera-capture-input-card").click();
+  }
+}
+
+async function handleCardImageUpload(event) {
+  const files = Array.from(event.target.files);
+  if (files.length === 0 || !activeUploadCargoId) return;
+  
+  const cargoIdx = cargoList.findIndex(c => c.id === activeUploadCargoId);
+  if (cargoIdx === -1) return;
+  
+  const cargo = cargoList[cargoIdx];
+  if (!cargo.images) cargo.images = [];
+  
+  for (const file of files) {
+    try {
+      const base64Str = await api.compressImage(file, 800, 0.7);
+      cargo.images.push(base64Str);
+    } catch (err) {
+      console.error("Card image upload compression error:", err);
+    }
+  }
+  
+  cargo.dateTime = new Date().toISOString();
+  
+  // Optimistic UI Redraw: show uploaded image immediately
+  renderCargoLists();
+  
+  // Save to db & server in background
+  await api.saveLocalCargoList(cargoList);
+  await api.sendCargoToServer(cargoList);
+  
+  // Reset state
+  event.target.value = "";
+  activeUploadCargoId = "";
+}
+
+// Expose functions globally to prevent window reference errors
+window.switchDashboardColumn = switchDashboardColumn;
+window.changeCargoStatusDirect = changeCargoStatusDirect;
+window.triggerCardImageUpload = triggerCardImageUpload;
+window.handleCardImageUpload = handleCardImageUpload;
 
 // 10. Modals Close helper
 function closeModal(modalId) {
