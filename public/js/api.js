@@ -176,21 +176,21 @@ function connectSSE() {
     syncAllData();
   };
   
-  sseSource.addEventListener("cargo_update", async (e) => {
+  sseSource.addEventListener("cargo_update", (e) => {
     try {
       const serverCargo = JSON.parse(e.data);
-      await saveLocalCargoList(serverCargo);
       if (onSyncCallback) onSyncCallback(serverCargo);
+      saveLocalCargoList(serverCargo).catch(err => console.error("Error caching cargo database offline:", err));
     } catch (err) {
       console.error("Error parsing cargo sse update:", err);
     }
   });
   
-  sseSource.addEventListener("settings_update", async (e) => {
+  sseSource.addEventListener("settings_update", (e) => {
     try {
       const serverSettings = JSON.parse(e.data);
-      await saveLocalSettings(serverSettings);
       if (onSettingsCallback) onSettingsCallback(serverSettings);
+      saveLocalSettings(serverSettings).catch(err => console.error("Error caching settings database offline:", err));
     } catch (err) {
       console.error("Error parsing settings sse update:", err);
     }
