@@ -95,8 +95,9 @@ class CargoHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             with sse_lock:
                 sse_clients.append(self)
             
-            # Send initial keepalive comment
+            # Send initial retry interval and keepalive comment
             try:
+                self.wfile.write(b"retry: 1000\n\n")
                 self.wfile.write(b": keepalive\n\n")
                 self.wfile.flush()
             except Exception:
