@@ -55,18 +55,21 @@ def write_db(file_path, data):
 def broadcast_sse(event_type, payload=None):
     message = f"event: {event_type}\ndata: {json.dumps(payload or {})}\n\n"
     with sse_lock:
-        closed_clients = []
-        for client in sse_clients:
-            try:
-                client.wfile.write(message.encode('utf-8'))
-                client.wfile.flush()
-            except Exception:
-                closed_clients.append(client)
+        clients_copy = list(sse_clients)
         
-        # Remove disconnected clients
-        for client in closed_clients:
-            if client in sse_clients:
-                sse_clients.remove(client)
+    closed_clients = []
+    for client in clients_copy:
+        try:
+            client.wfile.write(message.encode('utf-8'))
+            client.wfile.flush()
+        except Exception:
+            closed_clients.append(client)
+            
+    if closed_clients:
+        with sse_lock:
+            for client in closed_clients:
+                if client in sse_clients:
+                    sse_clients.remove(client)
 
 class CargoHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     def end_headers(self):
@@ -113,10 +116,12 @@ class CargoHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                     # Send a heartbeat/ping comment every 15 seconds
                     event.wait(15)
                     with sse_lock:
-                        if self not in sse_clients:
-                            break
-                        self.wfile.write(b": ping\n\n")
-                        self.wfile.flush()
+                        is_active = self in sse_clients
+                    if not is_active:
+                        break
+                    # Write outside lock
+                    self.wfile.write(b": ping\n\n")
+                    self.wfile.flush()
                 except Exception:
                     break
             
